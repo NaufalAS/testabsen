@@ -93,7 +93,7 @@ func (s *LeaveApprovalService) GetLeaveRequests() ([]entity.LeaveRequestEntity, 
 			return nil, err
 		}
 
-		// 4. Convert ke entity yang sudah ada
+		
 		result = append(result, entity.ToLeaveRequestEntity(leave, logs, approvers))
 	}
 
@@ -106,7 +106,7 @@ func (s *LeaveApprovalService) UpdateLeaveDates(leaveId int, startDate, endDate 
 		return err
 	}
 
-	// Cek semua approval masih pending
+	
 	logs, _ := s.approvalRepo.GetByLeaveRequestId(leaveId)
 	for _, l := range logs {
 		if l.Status != "pending" {
@@ -114,7 +114,7 @@ func (s *LeaveApprovalService) UpdateLeaveDates(leaveId int, startDate, endDate 
 		}
 	}
 
-	// Update tanggal
+	
 	return s.requestRepo.UpdateDates(leaveId, startDate, endDate)
 }
 
@@ -140,14 +140,14 @@ func (s *LeaveApprovalService) ApproveLeave(leaveId, approverId int, status, com
 		return errors.New("Bukan giliran Anda untuk approve")
 	}
 
-	// Update current approval
+	
 	current.Status = status
 	current.Comment = comment
 	if err := s.approvalRepo.UpdateStatus(current.ID, status, comment); err != nil {
 	return err
 }
 
-	// Update leave_requests status
+	
 	leave, err := s.requestRepo.GetById(leaveId)
 	if err != nil {
 		return err
@@ -156,7 +156,7 @@ func (s *LeaveApprovalService) ApproveLeave(leaveId, approverId int, status, com
 	if status == "rejected" {
 		return s.requestRepo.UpdateStatus(leave.ID, "rejected")
 	} else {
-		// cek apakah semua sudah approved
+		
 		allApproved := true
 		for _, l := range logs {
 			if l.Status != "approved" && l.ID != current.ID {

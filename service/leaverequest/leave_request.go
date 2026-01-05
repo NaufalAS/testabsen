@@ -7,6 +7,7 @@ import (
 	"time"
 
 	leaveapprovalrepo "test/repo/leave_approval.go"
+	leavebalancerepo "test/repo/leavebalance"
 	leaverequestrepo "test/repo/leaverequest"
 	userrepository "test/repo/user"
 )
@@ -15,14 +16,16 @@ type LeaveApprovalService struct {
 	approvalRepo leaveapprovalrepo.LeaveApprovalRepository
 	requestRepo  leaverequestrepo.LeaveRequestRepository
 	userRepo     userrepository.UserRepository
+	leabalancerepo leavebalancerepo.LeaveBalanceRepository
 }
 
 
-func NewLeaveApprovalService(ar leaveapprovalrepo.LeaveApprovalRepository, rr leaverequestrepo.LeaveRequestRepository, userRepo     userrepository.UserRepository) *LeaveApprovalService {
+func NewLeaveApprovalService(ar leaveapprovalrepo.LeaveApprovalRepository, rr leaverequestrepo.LeaveRequestRepository, userRepo     userrepository.UserRepository, leabalancerepo leavebalancerepo.LeaveBalanceRepository) *LeaveApprovalService {
 	return &LeaveApprovalService{
 		approvalRepo: ar,
 		requestRepo:  rr,
 		userRepo: userRepo,
+		leabalancerepo: leabalancerepo,
 	}
 }
 
@@ -165,7 +168,27 @@ func (s *LeaveApprovalService) ApproveLeave(leaveId, approverId int, status, com
 			}
 		}
 		if allApproved {
-			return s.requestRepo.UpdateStatus(leave.ID, "approved")
+			// update status leave request
+		if err := s.requestRepo.UpdateStatus(leave.ID, "approved"); err != nil {
+			return err
+		}
+
+		// hitung total hari cuti
+		totalDays := int(leave.EndDate.Sub(leave.StartDate).Hours()/24) + 1
+
+		// ambil tahun dari tanggal cuti
+		year := leave.StartDate.Year()
+
+		
+if err := s.leabalancerepo.DeductLeave(
+	leave.UserId,
+	leave.LeaveTypeId,
+	year,
+	totalDays,
+); err != nil {
+	return err
+}
+
 		}
 	}
 

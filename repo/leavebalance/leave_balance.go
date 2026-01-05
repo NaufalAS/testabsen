@@ -31,3 +31,16 @@ func (repo *LeaveBalanceRepositoryImpl) GetByUserAndType(userID int, leaveTypeID
 }
 
 
+func (repo *LeaveBalanceRepositoryImpl) DeductLeave(userId int,leaveTypeId int,year int,days int) error {
+	return repo.DB.Model(&domain.LeaveBalanve{}).
+		Where(
+			"user_id = ? AND leave_type_id = ? AND year = ?",
+			userId,
+			leaveTypeId,
+			year,
+		).
+		Updates(map[string]interface{}{
+			"used_days":      gorm.Expr("used_days + ?", days),
+			"remaining_days": gorm.Expr("remaining_days - ?", days),
+		}).Error
+}

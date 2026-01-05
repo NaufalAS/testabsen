@@ -29,7 +29,7 @@ func UserRoutes (prefix string, e *echo.Echo) {
 
 	leaveapprovalrepo := leaveapprovalrepo.NewLeaveApprovalRepository(db)
 	leaverequestrepo := leaverequestrepo.NewLeaveRequestRepository(db)
-	leavereuestservice := leaverequestservice.NewLeaveApprovalService(leaveapprovalrepo,leaverequestrepo, userAuthrepo)
+	leavereuestservice := leaverequestservice.NewLeaveApprovalService(leaveapprovalrepo,leaverequestrepo, userAuthrepo, leaveBalaancerepo)
 	leaverequuestcontroller := leaverequestcontroller.NewLeaveController(leavereuestservice)
 
 

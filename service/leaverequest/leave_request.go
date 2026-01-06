@@ -13,22 +13,20 @@ import (
 )
 
 type LeaveApprovalService struct {
-	approvalRepo leaveapprovalrepo.LeaveApprovalRepository
-	requestRepo  leaverequestrepo.LeaveRequestRepository
-	userRepo     userrepository.UserRepository
+	approvalRepo   leaveapprovalrepo.LeaveApprovalRepository
+	requestRepo    leaverequestrepo.LeaveRequestRepository
+	userRepo       userrepository.UserRepository
 	leabalancerepo leavebalancerepo.LeaveBalanceRepository
 }
 
-
-func NewLeaveApprovalService(ar leaveapprovalrepo.LeaveApprovalRepository, rr leaverequestrepo.LeaveRequestRepository, userRepo     userrepository.UserRepository, leabalancerepo leavebalancerepo.LeaveBalanceRepository) *LeaveApprovalService {
+func NewLeaveApprovalService(ar leaveapprovalrepo.LeaveApprovalRepository, rr leaverequestrepo.LeaveRequestRepository, userRepo userrepository.UserRepository, leabalancerepo leavebalancerepo.LeaveBalanceRepository) *LeaveApprovalService {
 	return &LeaveApprovalService{
-		approvalRepo: ar,
-		requestRepo:  rr,
-		userRepo: userRepo,
+		approvalRepo:   ar,
+		requestRepo:    rr,
+		userRepo:       userRepo,
 		leabalancerepo: leabalancerepo,
 	}
 }
-
 
 func (s *LeaveApprovalService) CreateLeaveRequest(userId int, leaveTypeId int, startDate, endDate time.Time, reason string) (*domain.LeaveRequest, error) {
 
@@ -54,24 +52,23 @@ func (s *LeaveApprovalService) CreateLeaveRequest(userId int, leaveTypeId int, s
 	}
 
 	for _, approver := range approvers {
-	log := domain.LeaveApprovalLog{
-		LeaveRequestId: request.ID,
-		ApproverId:     approver.ID, 
-		Status:         "pending",
-		CreatedAt:      time.Now(),
+		log := domain.LeaveApprovalLog{
+			LeaveRequestId: request.ID,
+			ApproverId:     approver.ID,
+			Status:         "pending",
+			CreatedAt:      time.Now(),
+		}
+		_, err := s.approvalRepo.Create(log)
+		if err != nil {
+			return nil, err
+		}
 	}
-	_, err := s.approvalRepo.Create(log)
-	if err != nil {
-		return nil, err
-	}
-}
-
 
 	return &request, nil
 }
 
 func (s *LeaveApprovalService) GetLeaveRequests() ([]entity.LeaveRequestEntity, error) {
-	
+
 	leaves, err := s.requestRepo.GetAll()
 	if err != nil {
 		return nil, err
@@ -80,13 +77,12 @@ func (s *LeaveApprovalService) GetLeaveRequests() ([]entity.LeaveRequestEntity, 
 	var result []entity.LeaveRequestEntity
 
 	for _, leave := range leaves {
-		
+
 		logs, err := s.approvalRepo.GetByLeaveRequestId(leave.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		
 		var approverIDs []int
 		for _, log := range logs {
 			approverIDs = append(approverIDs, log.ApproverId)
@@ -96,7 +92,6 @@ func (s *LeaveApprovalService) GetLeaveRequests() ([]entity.LeaveRequestEntity, 
 			return nil, err
 		}
 
-		
 		result = append(result, entity.ToLeaveRequestEntity(leave, logs, approvers))
 	}
 
@@ -109,7 +104,6 @@ func (s *LeaveApprovalService) UpdateLeaveDates(leaveId int, startDate, endDate 
 		return err
 	}
 
-	
 	logs, _ := s.approvalRepo.GetByLeaveRequestId(leaveId)
 	for _, l := range logs {
 		if l.Status != "pending" {
@@ -117,7 +111,6 @@ func (s *LeaveApprovalService) UpdateLeaveDates(leaveId int, startDate, endDate 
 		}
 	}
 
-	
 	return s.requestRepo.UpdateDates(leaveId, startDate, endDate)
 }
 
@@ -143,14 +136,12 @@ func (s *LeaveApprovalService) ApproveLeave(leaveId, approverId int, status, com
 		return errors.New("Bukan giliran Anda untuk approve")
 	}
 
-	
 	current.Status = status
 	current.Comment = comment
 	if err := s.approvalRepo.UpdateStatus(current.ID, status, comment); err != nil {
-	return err
-}
+		return err
+	}
 
-	
 	leave, err := s.requestRepo.GetById(leaveId)
 	if err != nil {
 		return err
@@ -159,7 +150,7 @@ func (s *LeaveApprovalService) ApproveLeave(leaveId, approverId int, status, com
 	if status == "rejected" {
 		return s.requestRepo.UpdateStatus(leave.ID, "rejected")
 	} else {
-		
+
 		allApproved := true
 		for _, l := range logs {
 			if l.Status != "approved" && l.ID != current.ID {
@@ -168,26 +159,23 @@ func (s *LeaveApprovalService) ApproveLeave(leaveId, approverId int, status, com
 			}
 		}
 		if allApproved {
-			// update status leave request
-		if err := s.requestRepo.UpdateStatus(leave.ID, "approved"); err != nil {
-			return err
-		}
 
-		// hitung total hari cuti
-		totalDays := int(leave.EndDate.Sub(leave.StartDate).Hours()/24) + 1
+			if err := s.requestRepo.UpdateStatus(leave.ID, "approved"); err != nil {
+				return err
+			}
 
-		// ambil tahun dari tanggal cuti
-		year := leave.StartDate.Year()
+			totalDays := int(leave.EndDate.Sub(leave.StartDate).Hours()/24) + 1
 
-		
-if err := s.leabalancerepo.DeductLeave(
-	leave.UserId,
-	leave.LeaveTypeId,
-	year,
-	totalDays,
-); err != nil {
-	return err
-}
+			year := leave.StartDate.Year()
+
+			if err := s.leabalancerepo.DeductLeave(
+				leave.UserId,
+				leave.LeaveTypeId,
+				year,
+				totalDays,
+			); err != nil {
+				return err
+			}
 
 		}
 	}

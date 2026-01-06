@@ -44,6 +44,6 @@ func UserRoutes (prefix string, e *echo.Echo) {
 	leaveroute.Use(helper.JWTMiddleware(os.Getenv("SECRET_KEY"))) 
 	leaveroute.POST("/create", leaverequuestcontroller.CreateLeaveRequest)
 	leaveroute.GET("/list", leaverequuestcontroller.GetLeaveRequests)
-	leaveroute.PUT("/update-dates", leaverequuestcontroller.UpdateLeaveDates)        // update start/end date (hanya pending)
+	leaveroute.PUT("/update-dates", leaverequuestcontroller.UpdateLeaveDates)       
 	leaveroute.PUT("/approve", leaverequuestcontroller.ApproveLeave)   
 }

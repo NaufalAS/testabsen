@@ -9,12 +9,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// UserControllerImpl is the implementation of AuthController interface
+
 type UserControllerImpl struct {
 	userservice userservice.Userservice
 }
 
-// NewAuthController creates a new instance of UserControllerImpl
+
 func NewAuthController(userservice userservice.Userservice) *UserControllerImpl {
 	return &UserControllerImpl{
 		userservice: userservice,

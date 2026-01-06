@@ -27,7 +27,7 @@ type LeaveRequestEntity struct {
 	Approvals   []LeaveApprovalEntity `json:"approvals"`
 }
 
-// Konversi domain leave_approval_logs ke entity
+
 func ToLeaveApprovalEntity(log domain.LeaveApprovalLog, approverName string) LeaveApprovalEntity {
 	return LeaveApprovalEntity{
 		ID:           log.ID,
@@ -39,7 +39,7 @@ func ToLeaveApprovalEntity(log domain.LeaveApprovalLog, approverName string) Lea
 	}
 }
 
-// Konversi domain leave_requests + logs ke entity
+
 func ToLeaveRequestEntity(leave domain.LeaveRequest, approvalLogs []domain.LeaveApprovalLog, approvers []domain.Users) LeaveRequestEntity {
 	var logs []LeaveApprovalEntity
 	for _, log := range approvalLogs {

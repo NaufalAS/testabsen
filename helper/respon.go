@@ -8,7 +8,7 @@ type ResponseClientModel struct {
 	Data    interface{} `json:"data"`
 }
 
-// NewResponseClient creates a new ResponseClient instance
+
 func ResponseClient(code int, message string, data interface{}) ResponseClientModel {
 	return ResponseClientModel{
 		Code:    code,

@@ -21,12 +21,12 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func main() {
-	// Load env
+	
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("error loading .env file!")
 	}
 
-	// Init DB (HANYA SEKALI)
+	
 	db := app.Dbconncentio()
 
 	sqlDB, err := db.DB()
@@ -39,19 +39,19 @@ func main() {
 
 	log.Println("Database connected successfully!")
 
-	// Init Echo
+	
 	e := echo.New()
 
-	// Middleware (debug & recover)
+	
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// 🔥 PASANG VALIDATOR (INI YANG KEMARIN KURANG)
+	
 	e.Validator = &CustomValidator{
 		validator: validator.New(),
 	}
 
-	// Register routes (inject DB)
+	
 	routego.UserRoutes("/api", e)
 
 	log.Println("Server running on :8080")

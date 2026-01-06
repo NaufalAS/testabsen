@@ -15,7 +15,7 @@ import (
 
 type UserServiceImpl struct {
 	userRepo     userrepository.UserRepository
-	lbRepo   leavebalancerepo.LeaveBalanceRepository // <- tambahkan ini
+	lbRepo   leavebalancerepo.LeaveBalanceRepository 
 	ltRepo   leavetyperepo.LeaveTypeRepository 
 }
 

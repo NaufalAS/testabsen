@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Ambil user ID dari JWT token
+
 func GetAuthId(c echo.Context) int {
 	user := c.Get("user")
 	if user == nil {
@@ -30,5 +30,5 @@ func GetAuthId(c echo.Context) int {
 	return userId
 }
 
-// Contoh middleware JWT harus di-setup di Echo
+
 
